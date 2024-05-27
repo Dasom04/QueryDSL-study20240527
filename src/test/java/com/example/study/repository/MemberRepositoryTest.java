@@ -315,6 +315,10 @@ class MemberRepositoryTest {
     void join() {
         // given
 
+        // Oracle DB의 경우 Oracle의 조인 문법도 사용이 가능하다.
+        // SELECT * FROM employees, departments WHERE ~~~~
+        // select().from(employees, department).where(~~~~)
+
         //when
         List<Tuple> result = factory.select(member.userName, team.name)
                 .from(member)
@@ -358,23 +362,59 @@ class MemberRepositoryTest {
 
         //when
         List<Member> result = factory.selectFrom(member)
-                .where(member.age.gt(
+                .where(member.age.eq(
                         // 나이가 가장 많은 사람을 조회하는 서브퀴리문이 들어가야 함.
                         JPAExpressions // 서브퀴리를 사용할 수 있게 해주는 클래스
-                                .select(memberSub.age.avg())
+                                .select(memberSub.age.max())
                                 .from(memberSub)
                 ))
                 .fetch();
 
         // then
         System.out.println("\n\n\n");
-        result.forEach(r -> System.out.println("r = " + r) );
+        result.forEach(r -> System.out.println("r = " + r));
         System.out.println("\n\n\n");
+    }
 
+    @Test
+    @DisplayName("나이가 평균 나이 이상인 회원을 조회")
+    void subQueryGoe() {
+        // given
+        QMember m2 = new QMember("m2");
+
+        //when
+        List<Member> result = factory.selectFrom(member)
+                .where(member.age.goe(
+                        JPAExpressions
+                                // JPAExpressions는 from절을 제외하고 select와 where절에서 사용이 가능
+                                // JPQL도 마찬가지로 from절 서브쿼리 사용이 불가.
+                                // -> Native SQL을 작성하던지, MyBatis or JdbcTemplate 이용, 따로따로 두 번 조회도 사용.
+                                .select(m2.age.avg())
+                                .from(m2)
+                )).fetch();
+
+        // then
+        System.out.println("\n\n\n");
+        result.forEach(r -> System.out.println("r = " + r));
+        System.out.println("\n\n\n");
+    }
+
+    @Test
+    @DisplayName("동작 sql 테스트")
+    void dynamicQueryTest() {
+        // given
+        String name = "member1";
+        Integer age = 10;
+
+        //when
+        List<Member> result = memberRepository.findUser(name, age);
+
+        // then
+        System.out.println("\n\n\n");
+        result.forEach(System.out::println);
+        System.out.println("\n\n\n");
     }
 
 
 }
-
-
 
