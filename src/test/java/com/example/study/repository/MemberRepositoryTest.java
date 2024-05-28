@@ -175,7 +175,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    @DisplayName("여러 결과 반환하시")
+    @DisplayName("여러 결과 반환하기")
     void testFetchResult() {
         // fetch
         List<Member> fetch1 = factory.selectFrom(member).fetch();
